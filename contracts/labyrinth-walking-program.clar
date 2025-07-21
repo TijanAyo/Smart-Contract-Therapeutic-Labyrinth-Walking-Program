@@ -391,7 +391,7 @@
 
         ;; Update labyrinth maintenance score
         (let ((labyrinth-data (unwrap-panic labyrinth))
-              (new-score (min u10 condition-after)))
+              (new-score (if (<= condition-after u10) condition-after u10)))
             (map-set labyrinths
                 { labyrinth-id: labyrinth-id }
                 (merge labyrinth-data { maintenance-score: new-score })
