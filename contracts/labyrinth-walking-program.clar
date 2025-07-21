@@ -496,15 +496,18 @@
 (define-read-only (calculate-wellness-improvement (outcome-id uint))
     (match (map-get? walking-outcomes { outcome-id: outcome-id })
         outcome-data
-            (let ((emotional-improvement (- (get emotional-state-after outcome-data) (get emotional-state-before outcome-data)))
+            (let ((after-state (get emotional-state-after outcome-data))
+                  (before-state (get emotional-state-before outcome-data))
+                  (emotional-improvement (- (to-int after-state) (to-int before-state)))
                   (overall-rating (/ (+ (get mindfulness-rating outcome-data)
                                        (get spiritual-connection outcome-data)
-                                       (get physical-comfort outcome-data)) u3)))
-                {
+                                       (get physical-comfort outcome-data)) u3))
+                  (improvement-bonus (if (> emotional-improvement 0) (to-uint emotional-improvement) u0)))
+                (some {
                     emotional-improvement: emotional-improvement,
                     overall-rating: overall-rating,
-                    wellness-score: (+ overall-rating (if (> emotional-improvement 0) emotional-improvement u0))
-                }
+                    wellness-score: (+ overall-rating improvement-bonus)
+                })
             )
         none
     )
@@ -514,7 +517,7 @@
 (define-read-only (get-accessibility-info (labyrinth-id uint))
     (match (map-get? labyrinths { labyrinth-id: labyrinth-id })
         labyrinth-data
-            {
+            (some {
                 accessibility-level: (get accessibility-level labyrinth-data),
                 path-width-cm: (get path-width-cm labyrinth-data),
                 maintenance-score: (get maintenance-score labyrinth-data),
@@ -522,7 +525,7 @@
                 maintenance-status: (if (>= (get maintenance-score labyrinth-data) u8) "excellent"
                                    (if (>= (get maintenance-score labyrinth-data) u6) "good"
                                    (if (>= (get maintenance-score labyrinth-data) u4) "fair" "needs-maintenance")))
-            }
+            })
         none
     )
 )
